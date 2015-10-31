@@ -11,8 +11,12 @@ import cgi
 import shutil
 import mimetypes
 from StringIO import StringIO
+import re
 
-PORT = 9100
+PORT = 9101
+
+def AddAlt(string):
+    return re.sub(r'[fF]acebook', 'myspace', string)
 
 class HeadRequest(urllib2.Request):
     def get_method(self):
@@ -32,7 +36,9 @@ class Proxy(BaseHTTPServer.BaseHTTPRequestHandler):
 
     def do_GET(self):
         resp = urllib.urlopen(self.path)
-        self.copyfile(resp, self.wfile)
+        resp_str = resp.read()
+        with_alt = AddAlt(resp_str)
+        self.wfile.write(with_alt)
 
     def do_HEAD(self):
         h = httplib2.Http()
