@@ -11,6 +11,7 @@ import cgi
 import shutil
 import mimetypes
 from StringIO import StringIO
+import re
 
 PORT = 9100
 
@@ -20,6 +21,9 @@ class HeadRequest(urllib2.Request):
 
 class Proxy(BaseHTTPServer.BaseHTTPRequestHandler):
     def copyfile(self, source, outputfile):
+        source_string = source.read()
+        m = re.search('img', source_string)
+        print m.group(0)
         shutil.copyfileobj(source, outputfile)
 
     def copyHTTPHeader(self, header, outputfile):
