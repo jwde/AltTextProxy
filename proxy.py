@@ -13,10 +13,11 @@ import mimetypes
 from StringIO import StringIO
 import re
 
-PORT = 9101
+PORT = 9100
 
 def AddAlt(string):
-    return re.sub(r'[fF]acebook', 'myspace', string)
+    # NOT WORKING
+    return re.sub(r"(<img(?!.*?alt=(['\"]).*?\2)[^>]*)(>)", "\1 alt='test' \3", string)
 
 class HeadRequest(urllib2.Request):
     def get_method(self):
@@ -38,9 +39,7 @@ class Proxy(BaseHTTPServer.BaseHTTPRequestHandler):
 
     def do_GET(self):
         resp = urllib.urlopen(self.path)
-        resp_str = resp.read()
-        with_alt = AddAlt(resp_str)
-        self.wfile.write(with_alt)
+        self.copyfile(resp, self.wfile)
 
     def do_HEAD(self):
         h = httplib2.Http()
