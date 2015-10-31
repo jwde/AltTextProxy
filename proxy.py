@@ -13,11 +13,10 @@ import mimetypes
 from StringIO import StringIO
 import re
 
-PORT = 9100
+PORT = 9101
 
 def AddAlt(string):
-    # NOT WORKING
-    return re.sub(r"(<img(?!.*?alt=(['\"]).*?\2)[^>]*)(>)", "\1 alt='test' \3", string)
+    return re.sub(r"(<img(?!.*?alt=(['\"]).*?\2)[^>]*)(>)", "\g<1> alt='test' \g<3>", string)
 
 class HeadRequest(urllib2.Request):
     def get_method(self):
