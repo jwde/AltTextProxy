@@ -39,9 +39,17 @@ class Proxy(BaseHTTPServer.BaseHTTPRequestHandler):
         resp = h.request(self.path, "HEAD")
         self.copyHTTPHeader(resp[0], self.wfile)
 
-    """
-    implement other http methods
-    """
+    def do_POST(self):
+        content_type, params = cgi.parse_header(self.headers.getheader('content-type'))
+        if content_type == 'multipart/form-data':
+            pvars = cgi.parse_multipart(self.rfile, params)
+        elif content_type == 'application/x-www-form-urlencoded':
+            length = int(self.headers.getheader('content-length'))
+            pvars = cgi.parse_qs(self.rfile.read(length), keep_blank_values=1)
+        else:
+            pvars = {}
+        resp = urllib.urlopen(self.path)
+        self.copyfile(resp, self.wfile)
 
 
 
