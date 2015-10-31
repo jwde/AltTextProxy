@@ -22,9 +22,8 @@ class HeadRequest(urllib2.Request):
 class Proxy(BaseHTTPServer.BaseHTTPRequestHandler):
     def copyfile(self, source, outputfile):
         source_string = source.read()
-        m = re.search('img', source_string)
-        print m.group(0)
-        shutil.copyfileobj(source, outputfile)
+        with_alt = AddAlt(source_string)
+        self.wfile.write(with_alt)
 
     def copyHTTPHeader(self, header, outputfile):
         outputfile.write("HTTP/1.1 " + str(header.status) + " " + str(header.reason) + "\n")
