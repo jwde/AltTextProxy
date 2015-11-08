@@ -1,3 +1,4 @@
+import sys
 import os
 import posixpath
 import SocketServer
@@ -14,7 +15,9 @@ import mimetypes
 from StringIO import StringIO
 import re
 
-PORT = 9101
+def Error(msg):
+    print "Error: ", msg
+    sys.exit(1)
 
 def GetAltText(image_path):
     return "image at" + image_path
@@ -29,7 +32,6 @@ def ImgAlt(img_tag, baseurl):
     return new_img_tag
 
 def AddAlt(string, baseurl):
-#    return re.sub(r"(<img(?!.*?alt=(['\"]).*?\2)[^>]*)(>)", lambda match: match.group(1) + " alt='" + GetAltText("") + "' " + match.group(3), string)
     return re.sub(r"(<img.*?>)", lambda img: ImgAlt(img.group(1), baseurl), string)
 
 class HeadRequest(urllib2.Request):
@@ -81,7 +83,16 @@ class Proxy(BaseHTTPServer.BaseHTTPRequestHandler):
         self.copyfile(resp, self.wfile)
 
 
+def main(args):
+    if len(args) is not 2:
+        Error("Usage: python %s <port #>" % args[0])
+    try:
+        port = int(args[1])
+    except ValueError:
+        Error("Port must be an integer")
+    httpd = SocketServer.ForkingTCPServer(('', port), Proxy)
+    print "serving at port", port
+    httpd.serve_forever()
 
-httpd = SocketServer.ForkingTCPServer(('', PORT), Proxy)
-print "serving at port", PORT
-httpd.serve_forever()
+if __name__ == "__main__":
+    main(sys.argv)
