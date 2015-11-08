@@ -71,6 +71,15 @@ class Proxy(BaseHTTPServer.BaseHTTPRequestHandler):
         resp = urllib.urlopen(self.path)
         self.copyfile(resp, self.wfile, self.path)
 
+    def do_PUT(self):
+        length = int(self.headers.getheader('content-length'))
+        content = self.rfile.read(length)
+        resp = urllib.urlopen(self.path)
+        self.send_response(200)
+        self.send_header('Content-type', 'application/json')
+        self.end_headers()
+        self.copyfile(resp, self.wfile)
+
 
 
 httpd = SocketServer.ForkingTCPServer(('', PORT), Proxy)
