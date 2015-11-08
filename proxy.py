@@ -24,6 +24,8 @@ def Error(msg):
 
 def GetAltText(image_path):
     reverse_image_scrape = json.loads(mrisa.mrisa_main(image_path))
+    if len(reverse_image_scrape['description']) == 0:
+        return ""
     description = reverse_image_scrape['description'][0]
     description = re.sub("\"", r'&#34;', description)
     description = re.sub("\'", r'&#39;', description)
@@ -35,6 +37,8 @@ def GetAltText(image_path):
 # takes in an image tag <img ... > and adds alt text if it is missing
 def ImgAlt(img_tag, baseurl):
     src_attr_search = re.search(r"src\s*=\s*(['\"])(.*?)\1", img_tag)
+    if not src_attr_search:
+        return img_tag
     src = src_attr_search.group(2)
     new_img_tag = img_tag
     if not re.search(r"alt\s*=\s*(['\"]).*?\1", img_tag):
