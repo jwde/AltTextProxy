@@ -1,6 +1,7 @@
 import pycurl, json
 from StringIO import StringIO
 from bs4 import BeautifulSoup
+import imp
 
 # MODIFIED Sunday, November 8, 2015 by @jbronen and @jwde
 
@@ -28,7 +29,7 @@ def retrieve(image_url):
 
 # Parses returned code (html,js,css) and assigns to array using beautifulsoup
 def google_image_results_parser(code):
-    soup = BeautifulSoup(code)
+    soup = BeautifulSoup(code, 'lxml')
 
     # initialize 2d array
     whole_array = {'links':[],
