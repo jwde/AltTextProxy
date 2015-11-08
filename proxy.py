@@ -14,13 +14,17 @@ import shutil
 import mimetypes
 from StringIO import StringIO
 import re
+import mrisa
 
 def Error(msg):
     print "Error: ", msg
     sys.exit(1)
 
 def GetAltText(image_path):
-    return "image at" + image_path
+    print "in getalttext"
+    print mrisa_main(image_path)
+    return "nice"
+
 
 # takes in an image tag <img ... > and adds alt text if it is missing
 def ImgAlt(img_tag, baseurl):
