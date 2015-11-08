@@ -4,6 +4,7 @@ import SocketServer
 import BaseHTTPServer
 import urllib
 import urllib2
+from urlparse import urljoin
 import requests
 from httplib import HTTPConnection
 import httplib2
@@ -15,17 +16,30 @@ import re
 
 PORT = 9101
 
-def AddAlt(string):
-    return re.sub(r"(<img(?!.*?alt=(['\"]).*?\2)[^>]*)(>)", "\g<1> alt='test' \g<3>", string)
+def GetAltText(image_path):
+    return "image at" + image_path
+
+# takes in an image tag <img ... > and adds alt text if it is missing
+def ImgAlt(img_tag, baseurl):
+    src_attr_search = re.search(r"src\s*=\s*(['\"])(.*?)\1", img_tag)
+    src = src_attr_search.group(2)
+    new_img_tag = img_tag
+    if not re.search(r"alt\s*=\s*(['\"]).*?\1", img_tag):
+        new_img_tag = new_img_tag[:-1] + " alt='" + GetAltText(urljoin(baseurl, src)) + "'>"
+    return new_img_tag
+
+def AddAlt(string, baseurl):
+#    return re.sub(r"(<img(?!.*?alt=(['\"]).*?\2)[^>]*)(>)", lambda match: match.group(1) + " alt='" + GetAltText("") + "' " + match.group(3), string)
+    return re.sub(r"(<img.*?>)", lambda img: ImgAlt(img.group(1), baseurl), string)
 
 class HeadRequest(urllib2.Request):
     def get_method(self):
         return "HEAD"
 
 class Proxy(BaseHTTPServer.BaseHTTPRequestHandler):
-    def copyfile(self, source, outputfile):
+    def copyfile(self, source, outputfile, baseurl):
         source_string = source.read()
-        with_alt = AddAlt(source_string)
+        with_alt = AddAlt(source_string, baseurl)
         self.wfile.write(with_alt)
 
     def copyHTTPHeader(self, header, outputfile):
@@ -38,7 +52,7 @@ class Proxy(BaseHTTPServer.BaseHTTPRequestHandler):
 
     def do_GET(self):
         resp = urllib.urlopen(self.path)
-        self.copyfile(resp, self.wfile)
+        self.copyfile(resp, self.wfile, self.path)
 
     def do_HEAD(self):
         h = httplib2.Http()
@@ -55,7 +69,7 @@ class Proxy(BaseHTTPServer.BaseHTTPRequestHandler):
         else:
             pvars = {}
         resp = urllib.urlopen(self.path)
-        self.copyfile(resp, self.wfile)
+        self.copyfile(resp, self.wfile, self.path)
 
 
 
