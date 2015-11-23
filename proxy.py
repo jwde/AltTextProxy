@@ -67,6 +67,7 @@ class Proxy(BaseHTTPServer.BaseHTTPRequestHandler):
 #    def copyHTTPBody(self, body, outputfile):
 
     def do_GET(self):
+#TODO -- add check for injected ajax -- wait on the relevant job
         resp = urllib.urlopen(self.path)
         self.copyfile(resp, self.wfile, self.path)
 
