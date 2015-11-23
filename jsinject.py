@@ -73,6 +73,7 @@ class Injector:
         payload += "}\n"
         payload += loader + "();"
         payload += "</script>"
+        return payload
 
     def AltTextPayload(image_path):
         def GetAltText(image_path):
@@ -88,6 +89,8 @@ class Injector:
         job = Job(GetAltText, image_path)
         self.job_collection.AddJob(job)
 # TODO -- add javascript payload to make ajax request
+# we need to inject the payload into the html and add a class to the img
+# so the payload can identify it
 
 
     def ID():
