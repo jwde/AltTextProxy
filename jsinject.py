@@ -4,6 +4,7 @@ from threading import Thread
 import mrisa
 import json
 import string
+import time
 
 num_threads = 10
 
@@ -64,18 +65,22 @@ class Injector:
         self.job_collection = JobCollection()
         StartWorkers(self.job_collection)
 
-    def MakePayload(js):
-# TODO -- update to run only when page is fully loaded
+    def MakePayload(self, js):
         payload = "<script>"
-        loader = filer(lambda c: c.isalnum(), uuid.uuid4().urn)
+        loader = filter(lambda c: c.isalnum(), uuid.uuid4().urn)
         payload += "function " + loader + "() { "
         payload += js
         payload += "}\n"
-        payload += loader + "();"
+        interval = filter(lambda c: c.isalnum(), uuid.uuid4().urn)
+        payload += "var " + interval + " = setInterval(function() {if(document.readyState === \"complete\") {clearInterval(" + interval + "); " + loader + "(); }}, 10);"
         payload += "</script>"
         return payload
 
-    def AltTextPayload(image_path):
+    def GetURL(self, uuid):
+        return "http://" + self._id + ".com/" + uuid
+
+    # get (class name, javascript payload) to inject into html for an image tag
+    def AltTextPayload(self, image_path):
         def GetAltText(image_path):
             reverse_image_scrape = json.loads(mrisa.mrisa_main(image_path))
             if len(reverse_image_scrape['description']) == 0:
@@ -88,12 +93,16 @@ class Injector:
             return filter(lambda c: c in string.printable, description)
         job = Job(GetAltText, image_path)
         self.job_collection.AddJob(job)
-# TODO -- add javascript payload to make ajax request
-# we need to inject the payload into the html and add a class to the img
-# so the payload can identify it
+        imgclass = filter(lambda c: c.isalnum(), uuid.uuid4().urn)
+        ajaxjs = "var xmlreq; if(window.XMLHttpRequest){xmlreq = new XMLHttpRequest();} else { xmlreq = new ActiveXObject(\"Microsoft.XMLHTTP\");} xmlreq.onreadystatechange = function() {if (xmlreq.readyState == XMLHttpRequest.DONE) {if(xmlreq.status == 200) {document.getElementsByClassName(\"" + imgclass + "\")[0].setAttribute(\"alt\", xmlreq.responseText);}}} xmlreq.open(\"GET\", " + self.GetURL(job.ID()) + ", true); xmlreq.send();"
+        return (imgclass, self.MakePayload(ajaxjs))
 
 
-    def ID():
+    def ID(self):
         return self._id
 
-def alttextjshandler(uuid):
+    def Retrieve(uuid):
+        job = self.job_collection.GetJob(uuid)
+        while not job.isDone():
+            time.sleep(.1)
+        return job.Result()
