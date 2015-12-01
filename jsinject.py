@@ -5,6 +5,7 @@ import mrisa
 import json
 import string
 import time
+import re
 
 num_threads = 10
 
@@ -15,11 +16,24 @@ class JobCollection:
         self.jobs_queue = Queue(maxsize=0)
 
     def AddJob(self, job):
+        print "#################################################"
+        print "AddJob adding job with id", job.ID()
+        print "#################################################"
         ID = job.ID()
         self.jobs[ID] = job
         self.jobs_queue.put(job)
+        print "#################################################"
+        print "AddJob printing contents of self.jobs"
+        for thing in self.jobs:
+            print thing
+        print "#################################################"
 
     def GetJob(self, ID):
+        print "#################################################"
+        print "GetJob printing contents of self.jobs"
+        for thing in self.jobs:
+            print thing
+        print "#################################################"
         return self.jobs[ID]
 
     def DoNextJob(self):

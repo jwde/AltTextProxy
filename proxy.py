@@ -1,8 +1,10 @@
 import sys
 import os
 import posixpath
-import SocketServer
-import BaseHTTPServer
+#import SocketServer
+from SocketServer import ThreadingMixIn
+import threading
+from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
 import urllib
 import urllib2
 from urlparse import urljoin
@@ -41,6 +43,7 @@ def GetAltText(image_path):
 
 # takes in an image tag <img ... > and adds alt text if it is missing
 def ImgAlt(img_tag, baseurl):
+    global injector
     src_attr_search = re.search(r"src\s*=\s*(['\"])(.*?)\1", img_tag)
     if not src_attr_search:
         return img_tag
@@ -66,7 +69,7 @@ class HeadRequest(urllib2.Request):
     def get_method(self):
         return "HEAD"
 
-class Proxy(BaseHTTPServer.BaseHTTPRequestHandler):
+class Proxy(BaseHTTPRequestHandler):
     def copyfile(self, source, outputfile, baseurl):
         source_string = source.read()
         with_alt = AddAlt(source_string, baseurl)
@@ -81,6 +84,7 @@ class Proxy(BaseHTTPServer.BaseHTTPRequestHandler):
 #    def copyHTTPBody(self, body, outputfile):
 
     def do_GET(self):
+        global injector
         iurl = injector.GetURL("")
         if iurl in self.path:
             uuid = re.sub(iurl, "", self.path)
@@ -116,6 +120,9 @@ class Proxy(BaseHTTPServer.BaseHTTPRequestHandler):
         self.end_headers()
         self.copyfile(resp, self.wfile)
 
+def ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
+    """ handles multithreading """
+
 
 def main(args):
     global injector
@@ -126,7 +133,8 @@ def main(args):
     except ValueError:
         Error("Port must be an integer")
     injector = jsinject.Injector()
-    httpd = SocketServer.ForkingTCPServer(('', port), Proxy)
+    #httpd = ThreadedHTTPServer(('localhost', port), Proxy)
+    httpd = HTTPServer(('localhost', port), Proxy)
     print "serving at port", port
     httpd.serve_forever()
 
