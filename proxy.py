@@ -17,11 +17,15 @@ import re
 import mrisa
 import json
 import string
+import jsinject
+
+injector = None
 
 def Error(msg):
     print "Error: ", msg
     sys.exit(1)
 
+    """
 def GetAltText(image_path):
     reverse_image_scrape = json.loads(mrisa.mrisa_main(image_path))
     if len(reverse_image_scrape['description']) == 0:
@@ -32,6 +36,7 @@ def GetAltText(image_path):
     description = re.sub("<", r'&lt;', description)
     description = re.sub(">", r'&gt;', description)
     return filter(lambda c: c in string.printable, description)
+    """
 
 
 # takes in an image tag <img ... > and adds alt text if it is missing
@@ -41,8 +46,17 @@ def ImgAlt(img_tag, baseurl):
         return img_tag
     src = src_attr_search.group(2)
     new_img_tag = img_tag
+    class_attr_search = re.search(r"class\s*=\s*(['\"])(.*?)\1", img_tag)
+    c, payload = injector.AltTextPayload(urljoin(baseurl, src))
+    if class_attr_search:
+        c += " " +  class_attr_search.group(2)
+        re.sub(r"class\s*=\s*(['\"])(.*?)\1", "class='" + c + "'", new_img_tag)
+    new_img_tag = new_img_tag[:-1] + " class = '" + c + "'>"
+    new_img_tag += payload
+    """
     if not re.search(r"alt\s*=\s*(['\"]).*?\1", img_tag):
         new_img_tag = new_img_tag[:-1] + " alt=\"" + GetAltText(urljoin(baseurl, src)) + "\">"
+    """
     return new_img_tag
 
 def AddAlt(string, baseurl):
@@ -67,8 +81,13 @@ class Proxy(BaseHTTPServer.BaseHTTPRequestHandler):
 #    def copyHTTPBody(self, body, outputfile):
 
     def do_GET(self):
-#TODO -- add check for injected ajax -- wait on the relevant job
-        resp = urllib.urlopen(self.path)
+        iurl = injector.GetURL("")
+        if iurl in self.path:
+            uuid = re.sub(iurl, "", self.path)
+            ret = injector.Retrieve(uuid)
+            resp = "HTTP/1.1 200 OK\n\n" + ret
+        else:
+            resp = urllib.urlopen(self.path)
         self.copyfile(resp, self.wfile, self.path)
 
     def do_HEAD(self):
@@ -99,12 +118,14 @@ class Proxy(BaseHTTPServer.BaseHTTPRequestHandler):
 
 
 def main(args):
+    global injector
     if len(args) is not 2:
         Error("Usage: python %s <port #>" % args[0])
     try:
         port = int(args[1])
     except ValueError:
         Error("Port must be an integer")
+    injector = jsinject.Injector()
     httpd = SocketServer.ForkingTCPServer(('', port), Proxy)
     print "serving at port", port
     httpd.serve_forever()

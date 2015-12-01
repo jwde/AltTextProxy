@@ -9,44 +9,44 @@ import time
 num_threads = 10
 
 class JobCollection:
-    def __init__():
+    def __init__(self):
         # uuid -> Job
         self.jobs = {}
         self.jobs_queue = Queue(maxsize=0)
 
-    def AddJob(job):
+    def AddJob(self, job):
         ID = job.ID()
         self.jobs[ID] = job
         self.jobs_queue.put(job)
 
-    def GetJob(ID):
+    def GetJob(self, ID):
         return self.jobs[ID]
 
-    def DoNextJob():
+    def DoNextJob(self):
         job = self.jobs_queue.get()
         job.Work()
         self.jobs_queue.task_done()
 
 
 class Job:
-    def __init__(work, args):
+    def __init__(self, work, args):
         self.work = work
         self.args = args
         self.done = False
         self._id = filter(lambda c: c.isalnum(), uuid.uuid4().urn)
         self.result = None
 
-    def Work():
+    def Work(self):
         self.result = self.work(self.args)
         self.done = True
 
-    def isDone():
+    def isDone(self):
         return self.done
 
-    def Result():
+    def Result(self):
         return self.result
 
-    def ID():
+    def ID(self):
         return self._id
 
 def DoWork(job_collection):
@@ -60,7 +60,7 @@ def StartWorkers(job_collection):
         worker.start()
 
 class Injector:
-    def __init__():
+    def __init__(self):
         self._id = filter(lambda c: c.isalnum(), uuid.uuid4().urn)
         self.job_collection = JobCollection()
         StartWorkers(self.job_collection)
@@ -94,14 +94,14 @@ class Injector:
         job = Job(GetAltText, image_path)
         self.job_collection.AddJob(job)
         imgclass = filter(lambda c: c.isalnum(), uuid.uuid4().urn)
-        ajaxjs = "var xmlreq; if(window.XMLHttpRequest){xmlreq = new XMLHttpRequest();} else { xmlreq = new ActiveXObject(\"Microsoft.XMLHTTP\");} xmlreq.onreadystatechange = function() {if (xmlreq.readyState == XMLHttpRequest.DONE) {if(xmlreq.status == 200) {document.getElementsByClassName(\"" + imgclass + "\")[0].setAttribute(\"alt\", xmlreq.responseText);}}} xmlreq.open(\"GET\", " + self.GetURL(job.ID()) + ", true); xmlreq.send();"
+        ajaxjs = "var xmlreq; if(window.XMLHttpRequest){xmlreq = new XMLHttpRequest();} else { xmlreq = new ActiveXObject(\"Microsoft.XMLHTTP\");} xmlreq.onreadystatechange = function() {if (xmlreq.readyState == XMLHttpRequest.DONE) {if(xmlreq.status == 200) {document.getElementsByClassName(\"" + imgclass + "\")[0].setAttribute(\"alt\", xmlreq.responseText);}}}; xmlreq.open(\"GET\", \"" + self.GetURL(job.ID()) + "\", true); xmlreq.send();"
         return (imgclass, self.MakePayload(ajaxjs))
 
 
     def ID(self):
         return self._id
 
-    def Retrieve(uuid):
+    def Retrieve(self, uuid):
         job = self.job_collection.GetJob(uuid)
         while not job.isDone():
             time.sleep(.1)
