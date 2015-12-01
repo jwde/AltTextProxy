@@ -6,35 +6,18 @@ import json
 import string
 import time
 import re
+import heapq
+import datetime
 
 num_threads = 10
 
 class JobCollection:
     def __init__(self):
-        # uuid -> Job
-        self.jobs = {}
         self.jobs_queue = Queue(maxsize=0)
 
     def AddJob(self, job):
-        print "#################################################"
-        print "AddJob adding job with id", job.ID()
-        print "#################################################"
         ID = job.ID()
-        self.jobs[ID] = job
         self.jobs_queue.put(job)
-        print "#################################################"
-        print "AddJob printing contents of self.jobs"
-        for thing in self.jobs:
-            print thing
-        print "#################################################"
-
-    def GetJob(self, ID):
-        print "#################################################"
-        print "GetJob printing contents of self.jobs"
-        for thing in self.jobs:
-            print thing
-        print "#################################################"
-        return self.jobs[ID]
 
     def DoNextJob(self):
         job = self.jobs_queue.get()
@@ -73,10 +56,90 @@ def StartWorkers(job_collection):
         worker.setDaemon(True)
         worker.start()
 
+class LFACacheEntry:
+    def __init__(self, ent):
+        self.ent = ent
+        self.points = 10
+     
+    def Touch(self):
+        self.points += 1
+
+    def Epoch(self):
+        self.points *= .9
+
+    def __cmp__(self, other):
+        return cmp(self.points, other.points)
+
+    def Get(self):
+        return self.ent
+
+class AltTextCache:
+    def __init__(self, max_entries):
+        self.cache = {}
+        self.uuids = {}
+        self.heap = []
+        self.max_entries = max_entries
+        self.clock = 0
+        self.epoch_time = 10
+        self.time = datetime.datetime.now()
+
+    def Evict(self):
+        LFA = heapq.heappop(self.heap)
+        del self.cache[LFA.Get()[0]]
+        del self.uuids[LFA.Get()[1].ID()]
+
+    def Epoch(self):
+        for entry in self.cache:
+            self.cache[entry].Epoch()
+
+    def Tick(self, n):
+        self.clock += n
+        while self.clock >= self.epoch_time:
+            self.clock -= self.epoch_time
+            self.Epoch()
+
+    def UpdateTime(self):
+        now = datetime.datetime.now()
+        self.Tick((now - self.time).total_seconds())
+        self.time = now
+
+    def Add(self, url, job):
+        self.UpdateTime()
+        while len(self.cache) > self.max_entries:
+            self.Evict()
+        self.cache[url] = LFACacheEntry((url, job))
+        self.uuids[job.ID()] = self.cache[url]
+        heapq.heappush(self.heap, self.cache[url])
+
+    def Touch(self, url):
+        self.UpdateTime()
+        self.cache[url].Touch()
+
+    def HasURL(self, url):
+        self.UpdateTime()
+        return url in self.cache
+
+    def HasJobID(self, uuid):
+        self.UpdateTime()
+        return uuid in self.uuids
+
+    def GetByURL(self, url):
+        self.UpdateTime()
+        self.Touch(url)
+        return self.cache[url].Get()[1]
+
+    def GetByJobID(self, uuid):
+        self.UpdateTime()
+        self.Touch(self.uuids[uuid].Get()[0])
+        return self.uuids[uuid].Get()[1]
+
+
+
 class Injector:
     def __init__(self):
         self._id = filter(lambda c: c.isalnum(), uuid.uuid4().urn)
         self.job_collection = JobCollection()
+        self.alt_cache = AltTextCache(1000)
         StartWorkers(self.job_collection)
 
     def MakePayload(self, js):
@@ -105,10 +168,13 @@ class Injector:
             description = re.sub("<", r'&lt;', description)
             description = re.sub(">", r'&gt;', description)
             return filter(lambda c: c in string.printable, description)
-        job = Job(GetAltText, image_path)
-        self.job_collection.AddJob(job)
+        if not self.alt_cache.HasURL(image_path):
+            job = Job(GetAltText, image_path)
+            self.job_collection.AddJob(job)
+            self.alt_cache.Add(image_path, job)
+        retrieval_id = self.alt_cache.GetByURL(image_path).ID()
         imgclass = filter(lambda c: c.isalnum(), uuid.uuid4().urn)
-        ajaxjs = "var xmlreq; if(window.XMLHttpRequest){xmlreq = new XMLHttpRequest();} else { xmlreq = new ActiveXObject(\"Microsoft.XMLHTTP\");} xmlreq.onreadystatechange = function() {if (xmlreq.readyState == XMLHttpRequest.DONE) {if(xmlreq.status == 200) {document.getElementsByClassName(\"" + imgclass + "\")[0].setAttribute(\"alt\", xmlreq.responseText);}}}; xmlreq.open(\"GET\", \"" + self.GetURL(job.ID()) + "\", true); xmlreq.send();"
+        ajaxjs = "var xmlreq; if(window.XMLHttpRequest){xmlreq = new XMLHttpRequest();} else { xmlreq = new ActiveXObject(\"Microsoft.XMLHTTP\");} xmlreq.onreadystatechange = function() {if (xmlreq.readyState == XMLHttpRequest.DONE) {if(xmlreq.status == 200) {document.getElementsByClassName(\"" + imgclass + "\")[0].setAttribute(\"alt\", xmlreq.responseText);}}}; xmlreq.open(\"GET\", \"" + self.GetURL(retrieval_id) + "\", true); xmlreq.send();"
         return (imgclass, self.MakePayload(ajaxjs))
 
 
@@ -116,7 +182,9 @@ class Injector:
         return self._id
 
     def Retrieve(self, uuid):
-        job = self.job_collection.GetJob(uuid)
+        if not self.alt_cache.HasJobID(uuid):
+            return ""
+        job = self.alt_cache.GetByJobID(uuid)
         while not job.isDone():
             time.sleep(.1)
         return job.Result()
