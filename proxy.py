@@ -81,15 +81,16 @@ class Proxy(BaseHTTPRequestHandler):
             if attr is not "status" and attr is not "reason":
                 outputfile.write(str(attr) + ": " + str(header[attr]) + "\n")
 
-#    def copyHTTPBody(self, body, outputfile):
-
     def do_GET(self):
         global injector
+        class S:
+            def __init__(self, **e):
+                self.__dict__.update(e)
         iurl = injector.GetURL("")
         if iurl in self.path:
             uuid = re.sub(iurl, "", self.path)
-            ret = injector.Retrieve(uuid)
-            resp = "HTTP/1.1 200 OK\n\n" + ret
+            ret= "HTTP/1.1 200 OK\nAccess-Control-Allow-Origin: *\n\n" + injector.Retrieve(uuid)
+            resp = S(read = lambda: ret)
         else:
             resp = urllib.urlopen(self.path)
         self.copyfile(resp, self.wfile, self.path)
