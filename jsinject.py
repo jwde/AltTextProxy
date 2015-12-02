@@ -84,7 +84,12 @@ class AltTextCache:
         self.time = datetime.datetime.now()
 
     def Evict(self):
-        LFA = heapq.heappop(self.heap)
+        LFA = None
+        while True:
+            LFA = heapq.heappop(self.heap)
+            # keep popping until we pop a valid entry
+            if LFA[1]:
+                break
         del self.cache[LFA.Get()[0]]
         del self.uuids[LFA.Get()[1].ID()]
 
@@ -109,11 +114,16 @@ class AltTextCache:
             self.Evict()
         self.cache[url] = LFACacheEntry((url, job))
         self.uuids[job.ID()] = self.cache[url]
-        heapq.heappush(self.heap, self.cache[url])
+        heapq.heappush(self.heap, [self.cache[url], True])
 
     def Touch(self, url):
         self.UpdateTime()
-        self.cache[url].Touch()
+        entry = self.cache[url]
+        entry[0].Touch()
+        # Invalidate this entry
+        entry[1] = False
+        # Add modified entry
+        self.heappush(self.heap, [entry[0], True])
 
     def HasURL(self, url):
         self.UpdateTime()

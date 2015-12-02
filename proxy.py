@@ -50,7 +50,7 @@ def SetFontSize(tag, percent):
     old_style = ""
     if old_style_search:
         old_style += old_style_search.group(2)
-    new_style = old_style + "; font-size:" + str(percent) + "%;"
+    new_style = old_style + ("; font-size:" if not old_style == "" else "font-size:") + str(percent) + "%;"
     new_tag = re.sub(r"\s+style\s*=\s*(['\"])(.*?)\1", " ", tag)
     new_tag = new_tag[:-1] + " style='" + new_style + "'>"
     return new_tag
