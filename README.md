@@ -43,11 +43,9 @@ We were able to design and implement a fast, reliable HTTP proxy to aid people v
 </p>
 <h3>Figures</h3>
 <p>
-![Proxy Request Sequence]
-(ProxyRequestSequence.png)
+![Proxy Request Sequence](ProxyRequestSequence.png)
 Proxy Request Sequence
 
-![Worker Sequence for Alt-Text Retrieval Jobs]
-(WorkerSequenceforAltTextRetrievalJobs.png)
+![Worker Sequence for Alt-Text Retrieval Jobs](WorkerSequenceforAltTextRetrievalJobs.png)
 Worker Sequence for Alt-Text Retrieval Jobs
 </p>
