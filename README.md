@@ -1,4 +1,4 @@
-@jwde and @jbronen
+@jwde and @jbronen<br>
 COMP 112 - Fall 2015
 
 #Building an Efficient HTTP Proxy for Accessibility
