@@ -1,3 +1,4 @@
+Jay DeStories and Jared Bronen<br>
 @jwde and @jbronen<br>
 COMP 112 - Fall 2015
 
@@ -35,8 +36,7 @@ We quickly noticed that our main obstacle in performance was the reverse image l
 Our solution was to create a job for each image without alt-text, that adds a special class to the image named on a randomly generated UUID, and then inject JavaScript into the HTML page to request the alt-text from our proxy server. We were able to significantly reduce load times with these AJAX calls. For this reason, we recommend using our proxies with screen readers that support javascript, such as WebbIE and Fang.
 </p>
 </li></ol>
-###CONCLUSION:
+<h3>CONCLUSION:</h3>
 <p>
 We were able to design and implement a fast, reliable HTTP proxy to aid people visual and kinetic disabilities.
-
 </p>
