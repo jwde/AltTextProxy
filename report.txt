@@ -1,0 +1,21 @@
+Jay DeStories and Jared Bronen
+COMP 112 - Fall 2015
+Final Project
+
+Building an Efficient HTTP Proxy for Accessibility
+
+For our final project, we chose to design and implement an HTTP proxy primarily designed for use by people with visual disabilities. We wrote our proxy in python and implemented the following features:
+1. Reverse image alt-text generation: we inject javascript on pages containing images without alt-text to asynchronously perform an image search to google and return the best possible description based on the results.
+2. Image caching: We developed a system to store image paths and their respective alt-texts in a cache for performance benefits.
+3. Link magnification: We implemented an option to increase the size of links by altering the styling of HTML pages for increased ease of use.
+
+REVERSE IMAGE ALT-TEXT GENERATION:
+Before serving HTML content to our users, we scan the page for images without alt-text using regular expressions.
+For each image, we check if the image path exists in our cache. If it does, we insert the corresponding alt-text into the HTML page. If it does not exist, we create a javascript injector object that makes an AJAX request to google's reverse image lookup API with the image path, and parse the results to return the best possible alt-text for that image. We then store the results in our cache, with the image path as the key.
+
+IMAGE CACHING:
+As mentioned above, in addition to making asynchronous calls to the reverse lookup API, we built a caching system to increase performance of our alt-text generation. We chose an LRU (least recently used) policy for expulsion from the cache. We estimate that our caching system can save [some sort of estimate or testing here?]
+
+LINK MAGNIFICATION:
+
+CONCLUSION:

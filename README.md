@@ -9,3 +9,12 @@ HTTP Proxy -- fills in alt text where missing with google reverse image search
 <li>other http verbs, TRACE, OPTIONS, PATCH </li>
 <li>ssl compatibility <i>low priority and bad idea security-wise!</i> </li>
 </ul>
+
+notes:
+set usage options in command line
+-m = magnification
+-a = alt text
+
+possibly:
+-g = gray scale
+-hc = high contrast
