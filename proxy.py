@@ -1,7 +1,6 @@
 import sys
 import os
 import posixpath
-#import SocketServer
 from SocketServer import ThreadingMixIn
 import threading
 from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
@@ -27,28 +26,16 @@ def Error(msg):
     print "Error: ", msg
     sys.exit(1)
 
-    """
-def GetAltText(image_path):
-    reverse_image_scrape = json.loads(mrisa.mrisa_main(image_path))
-    if len(reverse_image_scrape['description']) == 0:
-        return ""
-    description = reverse_image_scrape['description'][0]
-    description = re.sub("\"", r'&#34;', description)
-    description = re.sub("\'", r'&#39;', description)
-    description = re.sub("<", r'&lt;', description)
-    description = re.sub(">", r'&gt;', description)
-    return filter(lambda c: c in string.printable, description)
-    """
-
-
-# takes in an image tag <img ... > and adds alt text if it is missing
+# takes in an image tag <img ... > and injects a script to add alt text if it is missing
 def ImgAlt(img_tag, baseurl):
     global injector
     src_attr_search = re.search(r"src\s*=\s*(['\"])(.*?)\1", img_tag)
-    if not src_attr_search:
+    alt_attr_search = re.search(r"alt\s*=\s*(['\"]).+\1", img_tag)
+    if not src_attr_search or alt_attr_search:
         return img_tag
     src = src_attr_search.group(2)
     new_img_tag = img_tag
+    new_img_tag = re.sub(r"alt\s*=\s*(['\"]).*?\1", "", new_img_tag)
     class_attr_search = re.search(r"class\s*=\s*(['\"])(.*?)\1", img_tag)
     c, payload = injector.AltTextPayload(urljoin(baseurl, src))
     if class_attr_search:
@@ -56,10 +43,6 @@ def ImgAlt(img_tag, baseurl):
         re.sub(r"class\s*=\s*(['\"])(.*?)\1", "class='" + c + "'", new_img_tag)
     new_img_tag = new_img_tag[:-1] + " class = '" + c + "'>"
     new_img_tag += payload
-    """
-    if not re.search(r"alt\s*=\s*(['\"]).*?\1", img_tag):
-        new_img_tag = new_img_tag[:-1] + " alt=\"" + GetAltText(urljoin(baseurl, src)) + "\">"
-    """
     return new_img_tag
 
 def AddAlt(string, baseurl):
@@ -68,6 +51,9 @@ def AddAlt(string, baseurl):
 class HeadRequest(urllib2.Request):
     def get_method(self):
         return "HEAD"
+
+class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
+    pass
 
 class Proxy(BaseHTTPRequestHandler):
     def copyfile(self, source, outputfile, baseurl):
@@ -121,8 +107,6 @@ class Proxy(BaseHTTPRequestHandler):
         self.end_headers()
         self.copyfile(resp, self.wfile)
 
-def ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
-    """ handles multithreading """
 
 
 def main(args):
@@ -134,8 +118,8 @@ def main(args):
     except ValueError:
         Error("Port must be an integer")
     injector = jsinject.Injector()
-    #httpd = ThreadedHTTPServer(('localhost', port), Proxy)
-    httpd = HTTPServer(('localhost', port), Proxy)
+    httpd = ThreadedHTTPServer(('localhost', port), Proxy)
+    #httpd = HTTPServer(('localhost', port), Proxy)
     print "serving at port", port
     httpd.serve_forever()
 
