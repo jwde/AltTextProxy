@@ -45,6 +45,19 @@ def ImgAlt(img_tag, baseurl):
     new_img_tag += payload
     return new_img_tag
 
+def SetFontSize(tag, percent):
+    old_style_search = re.search(r"\s+style\s*=\s*(['\"])(.*?)\1", tag)
+    old_style = ""
+    if old_style_search:
+        old_style += old_style_search.group(2)
+    new_style = old_style + "; font-size:" + str(percent) + "%;"
+    new_tag = re.sub(r"\s+style\s*=\s*(['\"])(.*?)\1", " ", tag)
+    new_tag = new_tag[:-1] + " style='" + new_style + "'>"
+    return new_tag
+
+def EnlargeAnchorText(string):
+    return re.sub(r"(<a\s+.*?>)", lambda a: SetFontSize(a.group(1), 200), string)
+
 def AddAlt(string, baseurl):
     return re.sub(r"(<img.*?>)", lambda img: ImgAlt(img.group(1), baseurl), string)
 
@@ -59,7 +72,8 @@ class Proxy(BaseHTTPRequestHandler):
     def copyfile(self, source, outputfile, baseurl):
         source_string = source.read()
         with_alt = AddAlt(source_string, baseurl)
-        self.wfile.write(with_alt)
+        enlarged_links = EnlargeAnchorText(with_alt)
+        self.wfile.write(enlarged_links)
 
     def copyHTTPHeader(self, header, outputfile):
         outputfile.write("HTTP/1.1 " + str(header.status) + " " + str(header.reason) + "\n")
