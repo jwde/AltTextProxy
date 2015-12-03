@@ -42,10 +42,3 @@ As demonstrated in our diagram below, we use JavaScript to fetch alt-text from t
 <p>
 We were able to design and implement a fast, reliable HTTP proxy to aid people visual and kinetic disabilities.
 </p>
-<!--
-<h3>Figures</h3>
-<p>
-<img alt="Proxy Request Sequence" src="ProxyRequestSequence.png">
-
-<img alt="Worker Sequence for Alt-Text Retrieval Jobs" src="WorkerSequenceforAltTextRetrievalJobs.png">
-</p> -->
