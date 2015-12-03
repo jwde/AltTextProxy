@@ -78,6 +78,7 @@ class AltTextCache:
         self.cache = {}
         self.uuids = {}
         self.heap = []
+        self.url_to_heap = {}
         self.max_entries = max_entries
         self.clock = 0
         self.epoch_time = 10
@@ -92,6 +93,7 @@ class AltTextCache:
                 break
         del self.cache[LFA.Get()[0]]
         del self.uuids[LFA.Get()[1].ID()]
+        del self.url_to_heap[LFA.Get()[0]]
 
     def Epoch(self):
         for entry in self.cache:
@@ -114,16 +116,20 @@ class AltTextCache:
             self.Evict()
         self.cache[url] = LFACacheEntry((url, job))
         self.uuids[job.ID()] = self.cache[url]
-        heapq.heappush(self.heap, [self.cache[url], True])
+        heap_entry = [self.cache[url], True]
+        heapq.heappush(self.heap, heap_entry)
+        self.url_to_heap[url] = heap_entry
 
     def Touch(self, url):
         self.UpdateTime()
-        entry = self.cache[url]
+        entry = self.url_to_heap[url]
         entry[0].Touch()
         # Invalidate this entry
         entry[1] = False
         # Add modified entry
-        self.heappush(self.heap, [entry[0], True])
+        new_entry = [entry[0], True]
+        self.url_to_heap[url] = new_entry
+        heapq.heappush(self.heap, new_entry)
 
     def HasURL(self, url):
         self.UpdateTime()
