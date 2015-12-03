@@ -6,7 +6,7 @@ COMP 112 - Fall 2015
 
 For our final project, we chose to design and implement an HTTP proxy primarily designed for use by people with disabilities. We wrote our proxy in python and implemented the following features:
 <ol>
-<li>Reverse image alt-text generation: we inject javascript on pages containing images without alt-text and asynchronously perform reverse image search using a Google service. The JavaScript then fetches results from the proxy. We then parse the results to return the first description of the image.</li>
+<li>Reverse image alt-text generation: we inject JavaScript on pages containing images without alt-text and asynchronously perform reverse image search using a Google service. The JavaScript then fetches results from the proxy. We then parse the results to return the first description of the image.</li>
 <li>Link magnification: We implemented a magnification system to increase the size of links by altering the styling of HTML pages for increased ease of use.</li>
 <li>Performance
   <ol><li>Image Caching: We developed a system to store image paths and their respective alt-texts in a cache for performance benefits.</li>
@@ -14,11 +14,12 @@ For our final project, we chose to design and implement an HTTP proxy primarily 
   </ol></li></ol>
 
 ###Reverse Image Alt-Text Generation
-<p>Before serving HTML content, we scan the document for images without alt-text using regular expressions. If we find any, we assign a special class to the image, and inject javascript into the page to asynchronously request the alt-text using AJAX, and then add it to the alt field in the image itself. If the image does not exist in our cache, we use cURL to process a reverse-image search to Google. We then use Beautiful Soup to parse the results and return the first description, which is added to an alt field within the image by the injector.</p>
+<p>Before serving HTML content, we scan the document for images without alt-text using regular expressions. If we find any, we assign a special class to the image, and inject JavaScript into the page to asynchronously request the alt-text using AJAX, and then add it to the alt field in the image itself. If the image does not exist in our cache, we use cURL to process a reverse-image search to Google. We then use Beautiful Soup to parse the results and return the first description, which is added to an alt field within the image by the injector.</p>
 <p>Many visually impaired users use screen readers, such as WebbIE on Windows or the Fang extension for Firefox, to view text-only versions HTML documents. While many popular, large-scale websites include the alt tag, which replaces image on many of these screen readers, many websites with user-generated content, such as tumblr or WordPress, contain images without any alt-text. This tool aims to make those websites, as well as any others that contain images without alt-text more accessible.</p>
 
 ###Link Magnification
 We use regular expressions to scan through the HTML document looking for anchor tags and increase the font size in the styling.
+This feature is useful for both persons with visual disabilities as well as kinetic, such as Parkinson's Disease, who may have trouble clicking links with default font sizes.
 
 ###Performance
 <ol><li><h4>Image Caching</h4>
@@ -30,11 +31,11 @@ We use a minheap to keep track of points, evicting the item with the smallest po
 
 </p>
 </li>
-<li><h4>Javascript Injector</h4>
+<li><h4>JavaScript Injector</h4>
 <p>
 We quickly noticed that our main obstacle in performance was the reverse image lookup. A naive implementation of our project used no JavaScript injection; instead, it processed requests before loading the page itself, leading to delays approximate 5 to 15 seconds.
 <br> 
-As demonstrated in our diagram below, we use JavaScript to register our system that work must be done for each image that does not have an alt-text field. For this reason, we recommend using our proxies with screen readers that support javascript, such as WebbIE and Fang.
+As demonstrated in our diagram below, we use JavaScript to fetch alt-text from the proxy. For this reason, we recommend using our proxy with screen readers that support JavaScript, such as WebbIE and Fang.
 </p>
 </li></ol>
 <h3>Conclusion</h3>
