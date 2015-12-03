@@ -6,9 +6,9 @@ COMP 112 - Fall 2015
 
 For our final project, we chose to design and implement an HTTP proxy primarily designed for use by people with disabilities. We wrote our proxy in python and implemented the following features:
 <ol>
-<li>Reverse image alt-text generation: we inject javascript on pages containing images without alt-text to asynchronously perform a reverse image search to Google. We then parse the results to return the first description of the image.</li>
+<li>Reverse image alt-text generation: we inject javascript on pages containing images without alt-text and asynchronously perform reverse image search using a Google service. The JavaScript then fetches results from the proxy. We then parse the results to return the first description of the image.</li>
 <li>Link magnification: We implemented a magnification system to increase the size of links by altering the styling of HTML pages for increased ease of use.</li>
-</li>Performance
+<li>Performance
   <ol><li>Image Caching: We developed a system to store image paths and their respective alt-texts in a cache for performance benefits.</li>
   <li>JavaScript Injection: We developed a system to asynchronously process alt-text requests so the majority of the page could load without waiting for the process to complete.</li>
   </ol></li></ol>
