@@ -49,8 +49,8 @@ We were able to design and implement a fast, reliable HTTP proxy to aid people v
 </p>
 <h4>Performance Summary</h4>
 <p>
-	Average time loading whitehouse.tumblr.com (5 times total on Firefox)
-	With proxy: 5.624 seconds
-	Without proxy: 4.672 seconds
-    With proxy without caching or JS injection: 9.72 seconds
+	Average time loading whitehouse.tumblr.com (5 times total on Firefox)<br>
+	With proxy: 5.624 seconds<br>
+	Without proxy: 4.672 seconds<br>
+    With proxy without caching or JS injection: 9.72 seconds<br>
 </p>
